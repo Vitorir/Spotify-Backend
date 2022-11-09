@@ -20,11 +20,22 @@ const playlists = [
     }
 ]
 
+// PLAYLIST
+// GET PLAYLIST
 server.get('/playlists', (req, res) => {
     res.json(playlists) // retornar em arquivo json
 })
 
-server.post('/playlists/', (req, res) => {
+// GET PLAYLISTDETAIL
+server.get('/playlists/id', (req, res) => {
+    const { id } = req.params;
+
+    res.json(playlists) // retornar em arquivo json
+})
+
+
+// POST CADASTRAR PLAYLIST
+server.post('/playlists/id', (req, res) => {
     const { id } = req.params;
 
     const { xyz } = req.params;
@@ -34,5 +45,10 @@ server.post('/playlists/', (req, res) => {
     playlists.push(playlist) /// inserir uma nova playlist no vetor
     res.json();
 });
+
+// GET BUSCAR MUSICA
+
+// PUTS EDITAR MUSICA
+
 
 server.listen(3001);
