@@ -164,14 +164,21 @@ const musicas = [
 
   const users = [
     {
-        id: 1,
-        email: "vitorireboucas@edu.unifor.br"
+        email: "a@a.com",
+        senha: "123",
+        id: 1
     },
     {
-        id: 2,
-        email: "fulanodetal@gmail.com"
+        email: "lucascm00@gmail.com",
+        senha: "176400",
+        id: 2
+    },
+    {
+        email: "vitor@gmail.com",
+        senha: "12300",
+        id: 3
     }
-  ]
+]
 
 
 // PLAYLIST
@@ -200,11 +207,26 @@ server.get('/musicas', (req, res) => {
     res.json(musicas)
 })
 
-// PUTS EDITAR MUSICA
+// PUTS EDITAR PLAYLIST
+server.put('/playlists/:id', (req, res) => {
+    const { id } = req.params; 
+
+    const playlist  = req.body;
+    playlists[id - 1] = playlist; 
+    res.json(playlists);
+});
 
 
 
-// GET USERS
+
+
+//Get usuarios
+server.get("/users", (req, res) => {
+    res.json(users);
+})
+
+
+// GET usuario especifico
 server.get('/users/:id/:email', (req, res) => {
     const { id } = req.params;
     const { email } = req.query;
@@ -224,7 +246,7 @@ server.put('/users/:id', (req, res) => {
     const user = req.body;
     users[id - 1] = user; 
      res.json(users);
-    });
+});
 
 
 
