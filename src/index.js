@@ -162,6 +162,17 @@ const musicas = [
   ]
 
 
+  const users = [
+    {
+        id: 1,
+        email: "vitorireboucas@edu.unifor.br"
+    },
+    {
+        id: 2,
+        email: "fulanodetal@gmail.com"
+    }
+  ]
+
 
 // PLAYLIST
 // GET PLAYLIST
@@ -190,6 +201,30 @@ server.get('/musicas', (req, res) => {
 })
 
 // PUTS EDITAR MUSICA
+
+
+
+// GET USERS
+server.get('/users/:id/:email', (req, res) => {
+    const { id } = req.params;
+    const { email } = req.query;
+    res.json(users[id]);
+});
+
+//POST USUARIOS
+server.post('/users', (req, res) => {
+    const user = req.body
+    users.push(user);
+    res.json(user);
+});
+
+//PuT usuarios
+server.put('/users/:id', (req, res) => {
+    const { id } = req.params; 
+    const user = req.body;
+    users[id - 1] = user; 
+     res.json(users);
+    });
 
 
 
