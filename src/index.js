@@ -168,10 +168,10 @@ server.get('/playlists', (req, res) => {
 })
 
 // GET PLAYLISTDETAIL
-server.get('/playlists/id', (req, res) => {
+server.get('/playlists/:id', (req, res) => {
     const { id } = req.params;
 
-    res.json(playlists) // retornar em arquivo json
+    res.json(playlists[id]) // retornar em arquivo json
 })
 
 
