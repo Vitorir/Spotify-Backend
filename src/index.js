@@ -161,6 +161,8 @@ const musicas = [
     }
   ]
 
+
+
 // PLAYLIST
 // GET PLAYLIST
 server.get('/playlists', (req, res) => {
@@ -171,18 +173,13 @@ server.get('/playlists', (req, res) => {
 server.get('/playlists/:id', (req, res) => {
     const { id } = req.params;
 
-    res.json(playlists[id]) // retornar em arquivo json
+    res.json(playlists[id - 1]) // retornar em arquivo json
 })
 
 
 // POST CADASTRAR PLAYLIST
-server.post('/playlists/id', (req, res) => {
-    const { id } = req.params;
-
-    const { xyz } = req.params;
-    const { email } = req.query; // desestrutura o email passado
-
-    const playlist = req.body; // objeto contendo varias outras coisas, json, 
+server.post('/playlists/', (req, res) => {
+    const playlist = req.body; // playlist passada pelo postman
     playlists.push(playlist) /// inserir uma nova playlist no vetor
     res.json();
 });
@@ -195,4 +192,5 @@ server.get('/musicas', (req, res) => {
 // PUTS EDITAR MUSICA
 
 
-server.listen(3010);
+
+server.listen(3001);
