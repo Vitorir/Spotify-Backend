@@ -207,11 +207,11 @@ server.get('/musicas', (req, res) => {
     const { nome }= req.query;
 
     if (nome) {
-        musicas.filter((m) => m.nome == nome);
-        return res.json(musicas[0]);
+        const musica = musicas.filter((m) => m.includes(nome));
+        return res.json(musica);
     }
-    return res.json(musicas)
-})
+    return res.json(musicas);
+});
 
 // PUTS EDITAR PLAYLIST
 server.put('/playlists/:id', (req, res) => {
@@ -221,7 +221,6 @@ server.put('/playlists/:id', (req, res) => {
     playlists[id - 1] = playlist; 
     res.json(playlists);
 });
-
 
 
 
