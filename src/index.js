@@ -199,12 +199,18 @@ server.get('/playlists/:id', (req, res) => {
 server.post('/playlists/', (req, res) => {
     const playlist = req.body; // playlist passada pelo postman
     playlists.push(playlist) /// inserir uma nova playlist no vetor
-    res.json();
+    res.json(playlist);
 });
 
 // GET BUSCAR MUSICA
 server.get('/musicas', (req, res) => {
-    res.json(musicas)
+    const { nome }= req.query;
+
+    if (nome) {
+        musicas.filter((m) => m.nome == nome);
+        return res.json(musicas[0]);
+    }
+    return res.json(musicas)
 })
 
 // PUTS EDITAR PLAYLIST
@@ -219,19 +225,19 @@ server.put('/playlists/:id', (req, res) => {
 
 
 
-
-//Get usuarios
-server.get("/users", (req, res) => {
-    res.json(users);
-})
-
-
 // GET usuario especifico
-server.get('/users/:id/:email', (req, res) => {
-    const { id } = req.params;
+server.get('/users', (req, res) => {
     const { email } = req.query;
-    res.json(users[id]);
+
+    if (email) {
+        const usuario = users.filter((u) => u.email == email);
+    
+        return res.json(usuario[0]);
+    }
+
+    return res.json(users);
 });
+
 
 //POST USUARIOS
 server.post('/users', (req, res) => {
