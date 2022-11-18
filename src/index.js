@@ -2,6 +2,15 @@ const express = require('express');
 const server = express();
 server.use(express.json()); // convertendo de json para objeto tudo que vier de arquivo
 
+const bodyParser = require('body-parser');
+const mongoClient  = require('mongo-client').MontageClient;
+
+const MONGO_HOST = 'mongodb+srv://vitorir:<password>@cluster0.lvgrq.mongodb.net/?retryWrites=true&w=majority';
+const MONGO_DB = 'Spotify';
+const MONGO_COLLECTION_playlists = 'playlists';
+const MONGO_COLLECTION_users = 'users';
+const MONGO_COLLECTION_musicas = 'musicas';
+
 const playlists = [ // vetor de objetos, cada um uma playlist, a qual tera uma propriedade vetor de musicas
     {
         id: 1,
@@ -198,6 +207,15 @@ server.get('/playlists/:id', (req, res) => {
 // POST CADASTRAR PLAYLIST
 server.post('/playlists/', (req, res) => {
     const playlist = req.body; // playlist passada pelo postman
+
+    mongoCliente.connect(MONGO_HOST, (err, client) => {
+        if (err) throw err
+        const database = client.db("Spotify");
+        database.collection(MONGO_COLLECTION).insertOne(req.body, (err) => {
+            if (err) throw err
+            res.json(playlist)
+        })
+    })
     playlists.push(playlist) /// inserir uma nova playlist no vetor
     res.json(playlist);
 });
