@@ -1,11 +1,14 @@
 const express = require('express');
 const server = express();
+
 server.use(express.json()); // convertendo de json para objeto tudo que vier de arquivo
 
 const bodyParser = require('body-parser');
-const mongoClient  = require('mongo-client').MontageClient;
+const { default: mongoose } = require('mongoose');
+const { request } = require('express');
+const mongoClient  = require('mongodb').MongoClient;
 
-const MONGO_HOST = 'mongodb+srv://vitorir:<password>@cluster0.lvgrq.mongodb.net/?retryWrites=true&w=majority';
+const MONGO_HOST = 'mongodb+srv://vitorir:BnEXyVQlKWet1VYV@cluster0.lvgrq.mongodb.net/bancoAPI?retryWrites=true&w=majority';
 const MONGO_DB = 'Spotify';
 const MONGO_COLLECTION_playlists = 'playlists';
 const MONGO_COLLECTION_users = 'users';
@@ -168,7 +171,7 @@ const musicas = [
       nome: "RUDE - Eternal Youth",
       arquivo: "/tracks/RUDE-EternalYouth.mp3"
     }
-  ]
+]
 
 
   const users = [
@@ -190,34 +193,92 @@ const musicas = [
 ]
 
 
+server.post('/person', async(req, res, next) => {
+    // req body
+    const { name, salary, approved } = req.body;
+
+    const person = {
+        name,
+        salary,
+        approved
+    }
+
+    if(!name) {
+        res.status(422).json({error: 'O nome e obrigatorio'})
+    }
+
+    try {
+        await Person.create() // esperando salvar o dado
+        res.status(201).json({ message: 'Pessoa inserida no sistema com sucesso!' }) // enviar status pro postman
+        
+    } catch (error) {
+        res.status(500).json({ error: error }) // se der erro, atribuir um erro de servidor 
+    }
+})
+
+
 // PLAYLIST
 // GET PLAYLIST
 server.get('/playlists', (req, res) => {
-    res.json(playlists) // retornar em arquivo json
-})
+    mongoClient.connect(MONGO_HOST, (err, client) => {
+       if (err) throw err
+       // const database = client.get('Spotify');
+       const database = client.db(MONGO_DB);
+       database.collection(MONGO_COLLECTION_playlists).find().toArray((err, result) => {
+        if (err) throw err
+        res.send(result)
+       })
+    });
+
+    //res.json(playlists) // retornar em arquivo json
+});
 
 // GET PLAYLISTDETAIL
 server.get('/playlists/:id', (req, res) => {
     const { id } = req.params;
+    
+    mongoClient.connect(MONGO_HOST, (err, client) => {
+        if (err) throw err
+        const database = client.db(MONGO_DB);
+        database.collection(MONGO_COLLECTION_playlists).find({id: id}).toArray((err, result) => {
+         if (err) throw err
+         res.send(result)
+        })
+     });
 
-    res.json(playlists[id - 1]) // retornar em arquivo json
-})
+    //res.json(playlists[id - 1]) // retornar em arquivo json
+});
 
 
 // POST CADASTRAR PLAYLIST
 server.post('/playlists/', (req, res) => {
-    const playlist = req.body; // playlist passada pelo postman
+    const playlist = req.body; // playlist passada pelo postman    
 
-    mongoCliente.connect(MONGO_HOST, (err, client) => {
+    mongoClient.connect(MONGO_HOST, (err, client) => {
         if (err) throw err
         const database = client.db("Spotify");
-        database.collection(MONGO_COLLECTION).insertOne(req.body, (err) => {
+        database.collection(MONGO_COLLECTION_playlists).insertOne(req.body, (err) => {
             if (err) throw err
             res.json(playlist)
-        })
+        });
     })
     playlists.push(playlist) /// inserir uma nova playlist no vetor
-    res.json(playlist);
+    //res.json(playlist);
+});
+
+// POST MUSICA
+server.post('/musicas/', (req, res) => {
+    const musica = req.body; // playlist passada pelo postman    
+
+    mongoClient.connect(MONGO_HOST, (err, client) => {
+        if (err) throw err
+        const database = client.db("Spotify");
+        database.collection(MONGO_COLLECTION_musicas).insertOne(req.body, (err) => {
+            if (err) throw err
+            res.json(musica)
+        });
+    })
+    musicas.push(musica) /// inserir uma nova musica no vetor
 });
 
 // GET BUSCAR MUSICA
@@ -228,7 +289,15 @@ server.get('/musicas', (req, res) => {
         const musica = musicas.filter((m) => m.includes(nome));
         return res.json(musica);
     }
-    return res.json(musicas);
+    
+    mongoClient.connect(MONGO_HOST, (err, client) => {
+        if (err) throw err
+        const database = client.db(MONGO_DB);
+        database.collection(MONGO_COLLECTION_musicas).find().toArray((err, result) => {
+         if (err) throw err
+         res.send(result)
+        })
+     });
 });
 
 // PUTS EDITAR PLAYLIST
@@ -237,6 +306,17 @@ server.put('/playlists/:id', (req, res) => {
 
     const playlist  = req.body;
     playlists[id - 1] = playlist; 
+
+    mongoClient.connect(MONGO_HOST, (err, client) => {
+        if (err) throw err
+        const database = client.db(MONGO_DB);
+        database.collection(MONGO_COLLECTION).updateOne({ cod: req.query.cod }, { $set: req.query }, (err) => {
+          if (err) throw err
+          res.send();
+        });
+      });
+    
+
     res.json(playlists);
 });
 
@@ -258,12 +338,12 @@ server.get('/users', (req, res) => {
 
 //POST USUARIOS
 server.post('/users', (req, res) => {
-    const user = req.body
+    const user = req.body;
     users.push(user);
     res.json(user);
 });
 
-//PuT usuarios
+//Put usuarios
 server.put('/users/:id', (req, res) => {
     const { id } = req.params; 
     const user = req.body;
@@ -271,6 +351,13 @@ server.put('/users/:id', (req, res) => {
      res.json(users);
 });
 
+// estabelecer conexao com bd antes de iniciar aplicacao
+mongoose.connect('mongodb+srv://vitorir:BnEXyVQlKWet1VYV@cluster0.lvgrq.mongodb.net/bancoAPI?retryWrites=true&w=majority')
+.then(() => {
+    console.log('Conectado ao MONGODB!')
+    server.listen(3001);
+})
+.catch((err) => console.log(err));
 
 
-server.listen(3001);
+server.listen(3005);
