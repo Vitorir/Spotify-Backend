@@ -1,4 +1,5 @@
 const express = require('express');
+const {ObjectId} = require('mongodb');
 const server = express();
 
 server.use(express.json()); // convertendo de json para objeto tudo que vier de arquivo
@@ -218,7 +219,7 @@ server.post('/person', async(req, res, next) => {
 
 
 // PLAYLIST
-// GET PLAYLIST
+// GET PLAYLIST FUNCIONA
 server.get('/playlists', (req, res) => {
     mongoClient.connect(MONGO_HOST, (err, client) => {
        if (err) throw err
@@ -233,14 +234,15 @@ server.get('/playlists', (req, res) => {
     //res.json(playlists) // retornar em arquivo json
 });
 
-// GET PLAYLISTDETAIL
+// GET PLAYLISTDETAIL FUNCIONA
 server.get('/playlists/:id', (req, res) => {
     const { id } = req.params;
+    console.log(id)
     
     mongoClient.connect(MONGO_HOST, (err, client) => {
         if (err) throw err
         const database = client.db(MONGO_DB);
-        database.collection(MONGO_COLLECTION_playlists).find({id: id}).toArray((err, result) => {
+        database.collection(MONGO_COLLECTION_playlists).findOne({_id: ObjectId(id)}, (err, result) => {
          if (err) throw err
          res.send(result)
         })
@@ -250,9 +252,9 @@ server.get('/playlists/:id', (req, res) => {
 });
 
 
-// POST CADASTRAR PLAYLIST
+// POST CADASTRAR PLAYLIST FUNCIONA
 server.post('/playlists/', (req, res) => {
-    const playlist = req.body; // playlist passada pelo postman    
+    const playlist = req.body; // playlist passada pelo postman
 
     mongoClient.connect(MONGO_HOST, (err, client) => {
         if (err) throw err
@@ -277,7 +279,7 @@ server.post('/musicas/', (req, res) => {
             if (err) throw err
             res.json(musica)
         });
-    })
+    });
     musicas.push(musica) /// inserir uma nova musica no vetor
 });
 
@@ -286,8 +288,16 @@ server.get('/musicas', (req, res) => {
     const { nome }= req.query;
 
     if (nome) {
-        const musica = musicas.filter((m) => m.includes(nome));
-        return res.json(musica);
+        mongoClient.connect(MONGO_HOST, (err, client) => {
+            if (err) throw err
+            const database = client.db(MONGO_DB);
+            database.collection(MONGO_COLLECTION_musicas).find({nome: nome}).toArray((err, result) => {
+             if (err) throw err
+             res.send(result)
+            })
+         });
+        //const musica = musicas.filter((m) => m.includes(nome));
+        //return res.json(musica);
     }
     
     mongoClient.connect(MONGO_HOST, (err, client) => {
@@ -304,20 +314,20 @@ server.get('/musicas', (req, res) => {
 server.put('/playlists/:id', (req, res) => {
     const { id } = req.params; 
 
-    const playlist  = req.body;
-    playlists[id - 1] = playlist; 
+    const {nome, capa, musicas: [{id_musica, nome_musica, arquivo}]}  = req.body;
+    //playlists[id - 1] = playlist; 
 
     mongoClient.connect(MONGO_HOST, (err, client) => {
         if (err) throw err
         const database = client.db(MONGO_DB);
-        database.collection(MONGO_COLLECTION).updateOne({ cod: req.query.cod }, { $set: req.query }, (err) => {
+        database.collection(MONGO_COLLECTION_playlists).updateOne({ _id: ObjectId(id) }, { $set: {nome, capa, musicas: [{id_musica, nome_musica, arquivo}]} }, (err) => {
           if (err) throw err
           res.send();
         });
       });
     
 
-    res.json(playlists);
+    //res.json(playlists);
 });
 
 
