@@ -7,6 +7,7 @@ server.use(express.json()); // convertendo de json para objeto tudo que vier de 
 const bodyParser = require('body-parser');
 const { default: mongoose } = require('mongoose');
 const { request } = require('express');
+const { defaultAuthProviders } = require('mongodb/lib/core');
 const mongoClient  = require('mongodb').MongoClient;
 
 const MONGO_HOST = 'mongodb+srv://vitorir:BnEXyVQlKWet1VYV@cluster0.lvgrq.mongodb.net/bancoAPI?retryWrites=true&w=majority';
@@ -311,23 +312,35 @@ server.get('/musicas', (req, res) => {
 });
 
 // PUTS EDITAR PLAYLIST
-server.put('/playlists/:id', (req, res) => {
-    const { id } = req.params; 
-
-    const {nome, capa, musicas: [{id_musica, nome_musica, arquivo}]}  = req.body;
-    //playlists[id - 1] = playlist; 
+server.post('/playlists/:id/musicas/:idMusic', (req, res) => {
+    const { id, idMusic } = req.params; 
 
     mongoClient.connect(MONGO_HOST, (err, client) => {
         if (err) throw err
         const database = client.db(MONGO_DB);
-        database.collection(MONGO_COLLECTION_playlists).updateOne({ _id: ObjectId(id) }, { $set: {nome, capa, musicas: [{id_musica, nome_musica, arquivo}]} }, (err) => {
+        database.collection(MONGO_COLLECTION_musicas).findOne({ _id: ObjectId(idMusic) }, (err, result) => {
           if (err) throw err
-          res.send();
+          const music = result;
+
+          database.collection(MONGO_COLLECTION_playlists).updateOne({ _id: ObjectId(id) }, {$push: {musicas: music}}, (err, result) => {
+            if (err) throw err
+            res.send();
+          });
         });
       });
-    
+});
 
-    //res.json(playlists);
+server.delete('/playlists/:id/musicas/:idMusic', (req, res) => {
+    const { id, idMusic } = req.params; 
+
+    mongoClient.connect(MONGO_HOST, (err, client) => {
+        if (err) throw err
+        const database = client.db(MONGO_DB);
+          database.collection(MONGO_COLLECTION_playlists).updateOne({ _id: ObjectId(id) }, {$pull: {musicas: {_id: ObjectId(idMusic)}}}, (err, result) => {
+            if (err) throw err
+            res.send();
+          });
+        });
 });
 
 
