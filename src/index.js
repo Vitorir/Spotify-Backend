@@ -349,29 +349,63 @@ server.delete('/playlists/:id/musicas/:idMusic', (req, res) => {
 server.get('/users', (req, res) => {
     const { email } = req.query;
 
+
     if (email) {
-        const usuario = users.filter((u) => u.email == email);
-    
-        return res.json(usuario[0]);
+        mongoClient.connect(MONGO_HOST, (err, client) => {
+            if (err) throw err
+            const database = client.db(MONGO_DB);
+            database.collection(MONGO_COLLECTION_users).find({email: email}).toArray((err, result) => {
+             if (err) throw err
+             res.send(result)
+            })
+         });
+    }else{
+        mongoClient.connect(MONGO_HOST, (err, client) => {
+            if (err) throw err
+            const database = client.db(MONGO_DB);
+            database.collection(MONGO_COLLECTION_users).find().toArray((err, result) => {
+             if (err) throw err
+             res.send(result)
+            })
+         });
     }
 
-    return res.json(users);
+    
+   
 });
 
 
 //POST USUARIOS
 server.post('/users', (req, res) => {
     const user = req.body;
-    users.push(user);
-    res.json(user);
+    mongoClient.connect(MONGO_HOST, (err, client) => {
+        if (err) throw err
+        const database = client.db("Spotify");
+        database.collection(MONGO_COLLECTION_users).insertOne(req.body, (err) => {
+            if (err) throw err
+            res.json(user)
+
+        });
+    })
 });
 
 //Put usuarios
 server.put('/users/:id', (req, res) => {
-    const { id } = req.params; 
-    const user = req.body;
-    users[id - 1] = user; 
-     res.json(users);
+
+    const {id}  = req.params;
+    const {email, senha} = req.body;
+    //playlists[id - 1] = playlist; 
+
+    mongoClient.connect(MONGO_HOST, (err, client) => {
+        if (err) throw err
+        const database = client.db(MONGO_DB);
+        database.collection(MONGO_COLLECTION_users).updateOne({ _id: ObjectId(id) }, { $set: {email, senha} }, (err) => {
+          if (err) throw err
+          res.send();
+        });
+      });
+
+   
 });
 
 // estabelecer conexao com bd antes de iniciar aplicacao
