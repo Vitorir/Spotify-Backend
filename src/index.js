@@ -345,6 +345,7 @@ server.delete('/playlists/:id/musicas/:idMusic', (req, res) => {
 
 
 
+
 // GET usuario especifico
 server.get('/users', (req, res) => {
     const { email } = req.query;
